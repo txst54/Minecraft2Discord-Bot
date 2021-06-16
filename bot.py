@@ -11,10 +11,10 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 client = discord.Client()
 mc_player_list = os.getenv('MC_PLAYER_LIST')
-discord_ids = os.getenv('DISCORD_IDS')
+# discord_ids = os.getenv('DISCORD_IDS')
 mc = mc_player_list.split(',')
-ds = discord_ids.split(',')
-uuids = dict(zip(mc, ds))
+# ds = discord_ids.split(',')
+# uuids = dict(zip(mc, ds))
 @client.event
 async def on_ready():
 	ip_log = client.get_channel(int(os.getenv('IP_LOG')))
@@ -47,7 +47,7 @@ async def on_ready():
 			status = [x for x in mc if('<'+x+'>' in line)]
 			if bool(status):
 				content = line.split('<'+status[0]+'>')[1][:-4]
-				sender = await client.fetch_user(uuids[status[0]])
+				# sender = await client.fetch_user(uuids[status[0]])
 				await wormhole.send(status[0]+": "+content)
 				await client.user.edit(username="MineServer")
 client.run(TOKEN)
