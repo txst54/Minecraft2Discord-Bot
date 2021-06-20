@@ -1,7 +1,7 @@
 import re
 import os
 
-import aiohttp
+#import aiohttp
 import discord
 from dotenv import load_dotenv
 import screenutils as sc
@@ -51,25 +51,14 @@ async def on_ready():
 		for line in server.logs:
 			status = [x for x in mc if('<'+x+'>' in line)]
 			if bool(status):
-				print(status)
-				print(f'{status[0]} said a thing!')
 				content = line.split('<'+status[0]+'>')[1]
-				print(repr(content))
+				# print(repr(content))
 				content = re.split(r'\x1b',content)
 				print(content)
 				content = content[0]
 				sender = await client.fetch_user(uuids[status[0]])
-				print(sender.avatar)
-				async with aiohttp.ClientSession() as session:
-					async with session.get(str(sender.avatar_url)) as r:
-						data = await r.read()
-				print("Edited Bot!")
 				#if(client.user.name != sender.name):
 				#	await client.user.edit(username=sender.name)
-				print("Bot has a name!")
 				await wormhole.send(status[0]+": "+content)
-				path = "sigma.PNG"
-				fp = open(path, 'rb')
-				pfp = fp.read()
 				await client.user.edit(username="MineServer")
 client.run(TOKEN)
