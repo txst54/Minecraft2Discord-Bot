@@ -1,23 +1,26 @@
+import re
 import os
 
-# import aiohttp
-import discord # pip install discord
-from dotenv import load_dotenv # pip install python-dotenv
-import screenutils as sc # pip install screenutils
-from pyngrok import ngrok # pip install pyngrok
+import aiohttp
+import discord
+from dotenv import load_dotenv
+import screenutils as sc
+from pyngrok import ngrok
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
 client = discord.Client()
 mc_player_list = os.getenv('MC_PLAYER_LIST')
-# discord_ids = os.getenv('DISCORD_IDS')
+discord_ids = os.getenv('DISCORD_IDS')
 mc = mc_player_list.split(',')
-# ds = discord_ids.split(',')
-# uuids = dict(zip(mc, ds))
+ds = discord_ids.split(',')
+uuids = dict(zip(mc, ds))
 @client.event
 async def on_ready():
-	ip_log = client.get_channel(int(os.getenv('IP_LOG')))
+	ip_log = []
+	for x in os.getenv('IP_LOG').split(','):
+		ip_log.append(client.get_channel(int(x)))
 	wormhole = client.get_channel(int(os.getenv('WORMHOLE')))
 	print(f"{client.user} has connected to discord!")
 	print("Initializing Screens")
@@ -30,8 +33,8 @@ async def on_ready():
 		print('Server session does not exist, initializing...')
 		server.initialize()
 		server.enable_logs()
-		server.send_commands('cd ../server') # change path to path of the server file
-		server.send_commands('./run.bat') # change the bat/sh file to whatever bat/sh file starts the server
+		server.send_commands('cd ../server')
+		server.send_commands('./run.bat')
 		for f in server.logs:
 			if("help" in f):
 				break
@@ -39,14 +42,34 @@ async def on_ready():
 				print(f)
 	print('Done initializing server')
 	ip = ngrok.connect(25565, "tcp")
-	await ip_log.send(ip) # sends IP in the IP Logs Channel
+	for i in ip_log:
+		await i.send(ip)
 	print('Done initializing NGROK')
-	print(f"Running Screens:{sc.list_screens()}") # output should be at least 1 screen and one of the screens should be called server. Depends on how many other screen sessions you are running. 
+	print(f"Running Screens:{sc.list_screens()}")
 	while True:
+		i = 0
 		for line in server.logs:
 			status = [x for x in mc if('<'+x+'>' in line)]
 			if bool(status):
-				content = line.split('<'+status[0]+'>')[1][:-4]
-				# sender = await client.fetch_user(uuids[status[0]])
+				print(status)
+				print(f'{status[0]} said a thing!')
+				content = line.split('<'+status[0]+'>')[1]
+				print(repr(content))
+				content = re.split(r'\x1b',content)
+				print(content)
+				content = content[0]
+				sender = await client.fetch_user(uuids[status[0]])
+				print(sender.avatar)
+				async with aiohttp.ClientSession() as session:
+					async with session.get(str(sender.avatar_url)) as r:
+						data = await r.read()
+				print("Edited Bot!")
+				#if(client.user.name != sender.name):
+				#	await client.user.edit(username=sender.name)
+				print("Bot has a name!")
 				await wormhole.send(status[0]+": "+content)
+				path = "sigma.PNG"
+				fp = open(path, 'rb')
+				pfp = fp.read()
+				await client.user.edit(username="MineServer")
 client.run(TOKEN)
